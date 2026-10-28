@@ -68,4 +68,7 @@ MODES=C python stack_deg.py cnn+cnnpl+cnn3pl+cnn4s1+pre+preeff stackdeg6_C 0.9 s
 STACK_NEW=stackdeg_final STACK_OLD=stackdeg_pre python eval_final.py submissions/cand_final_all.csv pre preeff                 # sub10
 MODES=C python stack_deg.py cnn+cnnpl+cnn3pl+cnn4s1+pre+preeff+prefmstu stackdeg6_C 0.9 stackdeg_fm 3
 STACK_NEW=stackdeg_fm STACK_OLD=stackdeg_final python eval_final.py submissions/cand_final_fixmatch.csv pre preeff prefmstu   # sub11
-step "done: submissions/cand_final_fixmatch.csv (sub11) and submissions/cand_final_all.csv (sub10)"
+
+step "10. Class-prior correction for the test telescope's label mix -> sub12"
+python prior_correct.py stackdeg_fm submissions/cand_final_prior.csv                                                      # sub12
+step "done: submissions/cand_final_prior.csv (sub12), cand_final_fixmatch.csv (sub11), cand_final_all.csv (sub10)"
