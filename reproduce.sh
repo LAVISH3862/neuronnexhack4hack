@@ -90,4 +90,13 @@ step "14. Same, with pseudo-labels from the sub15 stack instead of the sub6-era 
 python -c "import numpy as np; P = np.exp(np.mean([np.log(np.clip(np.load(f'preds/stackdeg_fm2cv{s}_C_test.npy'), 1e-6, 1)) for s in range(3)], 0)); np.save('preds/stackdeg_fm2cvavg_test.npy', P / P.sum(1, keepdims=True))"
 for s in 0 1 2; do PLCV=1 PLCV_SEED=$s MODES=C python stack_deg.py $ALL stackdeg_fm2cvavg 0.9 stackdeg_fm2cvt$s 3; done
 python blend.py submissions/cand_final_fm2cvt.csv stackdeg_fm2cvt0_C:1 stackdeg_fm2cvt1_C:1 stackdeg_fm2cvt2_C:1           # sub16
-step "done: sub16 cand_final_fm2cvt.csv, sub15 cand_final_fm2cv.csv, sub14 cand_final_cv.csv, sub11 cand_final_fixmatch.csv"
+
+step "15. Same as 14 without the two models that echo their teachers' pseudo-labels (pre, preeff) -> sub17"
+for s in 0 1 2; do PLCV=1 PLCV_SEED=$s MODES=C python stack_deg.py cnn+cnnpl+cnn3pl+cnn4s1+prefmstu+preeffmstu stackdeg_fm2cvavg 0.9 stackdeg_noecho$s 3; done
+python blend.py submissions/cand_final_noecho.csv stackdeg_noecho0_C:1 stackdeg_noecho1_C:1 stackdeg_noecho2_C:1           # sub17
+
+step "16. One more teacher round: pseudo-labels from the sub17 stack, same echo-free models -> sub18"
+python -c "import numpy as np; P = np.exp(np.mean([np.log(np.clip(np.load(f'preds/stackdeg_noecho{s}_C_test.npy'), 1e-6, 1)) for s in range(3)], 0)); np.save('preds/stackdeg_noechoavg_test.npy', P / P.sum(1, keepdims=True))"
+for s in 0 1 2; do PLCV=1 PLCV_SEED=$s MODES=C python stack_deg.py cnn+cnnpl+cnn3pl+cnn4s1+prefmstu+preeffmstu stackdeg_noechoavg 0.9 stackdeg_noecho2t$s 3; done
+python blend.py submissions/cand_final_noecho2t.csv stackdeg_noecho2t0_C:1 stackdeg_noecho2t1_C:1 stackdeg_noecho2t2_C:1     # sub18
+step "done: sub18 cand_final_noecho2t.csv, sub17 cand_final_noecho.csv, sub16 cand_final_fm2cvt.csv, sub15 cand_final_fm2cv.csv"
