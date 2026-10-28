@@ -71,4 +71,4 @@ intermediate predictions are available on request.
 | Data, normalisation, caches | `common.py`, `prep_cnn.py`, `make_deg.py` |
 | Physics features | `features.py`, `features_extra.py`, `features_level.py`, `features_fft.py`, `features_deg.py` |
 | Models | `train_gbm.py`, `train_cnn.py`, `train_cnn2.py`, `train_cnn3.py`, `train_pre.py` |
-| Stacking and finals | `stack.py`, `stack_pl.py`, `stack_deg.py`, `predict_deg.py`, `eval_final.py`, `blend.py`, `prior_correct.py` |
+| Stacking and finals | `stack.py`, `stack_pl.py`, `stack_deg.py`, `predict_deg.py`, `eval_final.py`, `blend.py`, `prior_correct.py`, `final_avg.py` |
