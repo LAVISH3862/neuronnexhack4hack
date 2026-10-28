@@ -4,9 +4,10 @@ Classifies radio-telescope ON/OFF cadences into 9 classes (ETI candidate, FRB, p
 satellite pass, radar chirp, intermittent and persistent RFI, noise). Training data comes from the GBT telescope,
 the test data from PKS, so most of the work goes into surviving that telescope shift.
 
-**Final uploads:** `sub11` (public macro-F1 0.9048), `sub12` (sub11 with a class-prior correction) and `sub13` (sub12 with
-cross-fitted pseudo-labels in the stacker), reproduced by `reproduce.sh` as `submissions/cand_final_fixmatch.csv`,
-`submissions/cand_final_prior.csv` and `submissions/cand_final_cv_prior.csv`.
+**Final uploads:** `sub11` (public macro-F1 0.9048), `sub12` (sub11 with a class-prior correction, 0.9040), `sub13`
+(sub12 with cross-fitted pseudo-labels in the stacker) and `sub14` (sub11 with cross-fitted pseudo-labels), reproduced by
+`reproduce.sh` as `submissions/cand_final_fixmatch.csv`, `cand_final_prior.csv`, `cand_final_cv_prior.csv` and
+`cand_final_cv.csv`.
 
 ## Approach
 

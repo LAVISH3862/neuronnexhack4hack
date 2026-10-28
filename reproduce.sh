@@ -75,4 +75,5 @@ python prior_correct.py stackdeg_fm submissions/cand_final_prior.csv            
 step "11. Same stack with cross-fitted pseudo-labels (no test row predicted by a model trained on its own pseudo-label) -> sub13"
 PLCV=1 MODES=C python stack_deg.py cnn+cnnpl+cnn3pl+cnn4s1+pre+preeff+prefmstu stackdeg6_C 0.9 stackdeg_fmcv 3
 python prior_correct.py stackdeg_fmcv submissions/cand_final_cv_prior.csv                                                 # sub13
-step "done: submissions/cand_final_cv_prior.csv (sub13), cand_final_prior.csv (sub12), cand_final_fixmatch.csv (sub11)"
+python blend.py submissions/cand_final_cv.csv stackdeg_fmcv_C:1                                                           # sub14 (no prior correction)
+step "done: submissions/cand_final_cv.csv (sub14), cand_final_cv_prior.csv (sub13), cand_final_prior.csv (sub12), cand_final_fixmatch.csv (sub11)"
