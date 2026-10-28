@@ -4,8 +4,9 @@ Classifies radio-telescope ON/OFF cadences into 9 classes (ETI candidate, FRB, p
 satellite pass, radar chirp, intermittent and persistent RFI, noise). Training data comes from the GBT telescope,
 the test data from PKS, so most of the work goes into surviving that telescope shift.
 
-**Final uploads:** `sub11` (public macro-F1 0.9048) and `sub12` (sub11 with a class-prior correction), reproduced by
-`reproduce.sh` as `submissions/cand_final_fixmatch.csv` and `submissions/cand_final_prior.csv`.
+**Final uploads:** `sub11` (public macro-F1 0.9048), `sub12` (sub11 with a class-prior correction) and `sub13` (sub12 with
+cross-fitted pseudo-labels in the stacker), reproduced by `reproduce.sh` as `submissions/cand_final_fixmatch.csv`,
+`submissions/cand_final_prior.csv` and `submissions/cand_final_cv_prior.csv`.
 
 ## Approach
 
@@ -38,6 +39,9 @@ the test data from PKS, so most of the work goes into surviving that telescope s
 6. **Class-prior correction** (`prior_correct.py`, sub12): the test telescope's class mix is estimated without labels
    by inverting the confusion matrix of the test-like out-of-fold predictions, and each class's probability is
    reweighted by its estimated test share over its training share.
+7. **Cross-fitted pseudo-labels** (`stack_deg.py` with `PLCV=1`, sub13): each fifth of the test set is predicted by a
+   stacker trained on the other four fifths' pseudo-labels, so no test cadence is predicted by a model that saw its own
+   pseudo-label.
 
 All model selection used 5-fold out-of-fold validation on two proxies of the test telescope (the noise-degraded copy
 and training cadences mixed with real PKS noise), not the public leaderboard.
@@ -52,8 +56,8 @@ bash reproduce.sh
 ```
 
 It runs every stage in the order and with the settings used during the round (about 12–14 hours on an RTX 3050
-laptop GPU) and writes `submissions/cand_final_prior.csv` (sub12), `submissions/cand_final_fixmatch.csv` (sub11) and
-`submissions/cand_final_all.csv` (sub10).
+laptop GPU) and writes `submissions/cand_final_cv_prior.csv` (sub13), `submissions/cand_final_prior.csv` (sub12),
+`submissions/cand_final_fixmatch.csv` (sub11) and `submissions/cand_final_all.csv` (sub10).
 GPU training uses `cudnn.benchmark`, so retrained models can differ very slightly from ours. Trained weights and
 intermediate predictions are available on request.
 
@@ -66,4 +70,4 @@ intermediate predictions are available on request.
 | Models | `train_gbm.py`, `train_cnn.py`, `train_cnn2.py`, `train_cnn3.py`, `train_pre.py` |
 | Stacking and finals | `stack.py`, `stack_pl.py`, `stack_deg.py`, `predict_deg.py`, `eval_final.py`, `blend.py`, `prior_correct.py` |
 | Analysis tools used during the round | `adversarial.py`, `check_norm.py`, `explore_labels.py`, `eval_blend.py`, `proxy_pks.py`, `pick.py`, `estimate_csv.py`, `adabn_*.py`, `bench_cnn.py` |
-| Experiments not in the final model | `train_cnn4.py`, `train_panel.py`, `make_heavy.py` |
+| Experiments not in the final model | `train_cnn4.py`, `train_panel.py`, `make_heavy.py`, `features_scint.py` |
