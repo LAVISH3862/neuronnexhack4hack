@@ -30,6 +30,10 @@ if os.environ.get('FFT', '1') == '1' and os.path.exists('features_fft_train.pkl'
             from features_fft import fft_features
             fft_features(np.load('cache_zdeg2_train.npy', mmap_mode='r')).to_pickle('features_fft_zdeg2_train.pkl')
         Fd2 = pd.concat([Fd2, pd.read_pickle('features_fft_zdeg2_train.pkl')], axis=1)
+if os.environ.get('SCINT', '0') == '1':  # blotch-scale scintillation features (features_scint.py)
+    Fc = pd.concat([Fc, pd.read_pickle('features_scint_train.pkl')], axis=1)
+    Fd = pd.concat([Fd, pd.read_pickle('features_scint_deg_train.pkl')], axis=1)
+    Ft = pd.concat([Ft, pd.read_pickle('features_scint_test.pkl')], axis=1)
 def add_fit_features(F):
     """ETI vs trap: one straight track through the ON panels vs the best free line in each ON panel."""
     best = lambda p: F[[f'p{p}_l0', f'p{p}_lslow', f'p{p}_lmed']].max(1)
@@ -56,7 +60,21 @@ for tag in tags:
         Fc[f'{tag}_{l}'] = oc[:, k]; Fd[f'{tag}_{l}'] = od[:, k]; Ft[f'{tag}_{l}'] = te[:, k]
         if DEG2: Fd2[f'{tag}_{l}'] = od2[:, k]
 
+# Gain jitter (std, level units) on the training levels used for fitting / for the held-out rows; unset = as in features_level_train.pkl
+LVL_FIT, LVL_VAL = os.environ.get('LVL_FIT'), os.environ.get('LVL_VAL')
+Fc_v, Fd_v = Fc, Fd
+if LVL_FIT or LVL_VAL:
+    from features_level import level_features
+    L0 = np.load('cache_levels_train.npy'); cols = list(lev_tr.columns)
+    jit = lambda sd, seed: level_features(L0 + np.random.default_rng(seed).normal(0, float(sd), L0.shape).astype(np.float32)).values
+    if LVL_FIT: Fc[cols] = jit(LVL_FIT, 0); Fd[cols] = Fc[cols].values
+    Fc_v, Fd_v = Fc.copy(), Fd.copy()
+    if LVL_VAL: Fc_v[cols] = jit(LVL_VAL, 11); Fd_v[cols] = Fc_v[cols].values
+
 pp = np.load(f'preds/{src}_test.npy'); pl = np.where(pp.max(1) >= thr)[0]; ypl = pp.argmax(1)[pl]
+# PLCV=1: cross-fit the pseudo-labelled test rows, so no test row is predicted by a model trained on its own pseudo-label
+PLCV = os.environ.get('PLCV', '0') == '1'
+tfold = np.random.default_rng(0).integers(0, 5, len(Ft))
 print(f'pseudo-labels: {len(pl)} at thr {thr}', flush=True)
 
 
@@ -73,15 +91,17 @@ def model(seed):
 res = {}
 for mode in os.environ.get('MODES', 'ABC'):
     oof_c = np.zeros((len(y), 9)); oof_d = np.zeros((len(y), 9)); pt = np.zeros((len(Ft), 9))
-    for a, b in StratifiedKFold(5, shuffle=True, random_state=7).split(Fc, y):
+    for fi, (a, b) in enumerate(StratifiedKFold(5, shuffle=True, random_state=7).split(Fc, y)):
         parts = {'A': [Fc.iloc[a]], 'B': [Fd.iloc[a]], 'C': [Fc.iloc[a], Fd.iloc[a]],
                  'D': [Fc.iloc[a], Fd.iloc[a]] + ([Fd2.iloc[a]] if DEG2 else [])}[mode]
-        X = pd.concat(parts + [Ft.iloc[pl]], ignore_index=True)
-        yy = np.concatenate([y[a]] * len(parts) + [ypl])
+        use = pl[tfold[pl] != fi] if PLCV else pl
+        X = pd.concat(parts + [Ft.iloc[use]], ignore_index=True)
+        yy = np.concatenate([y[a]] * len(parts) + [pp.argmax(1)[use]])
         for s in range(nseeds):
             m = model(s).fit(X, yy)
-            oof_c[b] += m.predict_proba(Fc.iloc[b]) / nseeds; oof_d[b] += m.predict_proba(Fd.iloc[b]) / nseeds
-            pt += m.predict_proba(Ft) / (5 * nseeds)
+            oof_c[b] += m.predict_proba(Fc_v.iloc[b]) / nseeds; oof_d[b] += m.predict_proba(Fd_v.iloc[b]) / nseeds
+            if PLCV: pt[tfold == fi] += m.predict_proba(Ft.iloc[np.where(tfold == fi)[0]]) / nseeds
+            else: pt += m.predict_proba(Ft) / (5 * nseeds)
     fc = f1_score(y, oof_c.argmax(1), average='macro'); fd = f1_score(y, oof_d.argmax(1), average='macro')
     pcd = f1_score(y, oof_d.argmax(1), average=None)
     print(f'{mode}: clean val {fc:.4f} | degraded (test-like) val {fd:.4f}   per-class degraded: '
