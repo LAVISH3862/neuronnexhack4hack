@@ -99,4 +99,8 @@ step "16. One more teacher round: pseudo-labels from the sub17 stack, same echo-
 python -c "import numpy as np; P = np.exp(np.mean([np.log(np.clip(np.load(f'preds/stackdeg_noecho{s}_C_test.npy'), 1e-6, 1)) for s in range(3)], 0)); np.save('preds/stackdeg_noechoavg_test.npy', P / P.sum(1, keepdims=True))"
 for s in 0 1 2; do PLCV=1 PLCV_SEED=$s MODES=C python stack_deg.py cnn+cnnpl+cnn3pl+cnn4s1+prefmstu+preeffmstu stackdeg_noechoavg 0.9 stackdeg_noecho2t$s 3; done
 python blend.py submissions/cand_final_noecho2t.csv stackdeg_noecho2t0_C:1 stackdeg_noecho2t1_C:1 stackdeg_noecho2t2_C:1     # sub18
-step "done: sub18 cand_final_noecho2t.csv, sub17 cand_final_noecho.csv, sub16 cand_final_fm2cvt.csv, sub15 cand_final_fm2cv.csv"
+
+step "17. sub18 averaged over 5 test splits instead of 3 -> sub19"
+for s in 3 4; do PLCV=1 PLCV_SEED=$s MODES=C python stack_deg.py cnn+cnnpl+cnn3pl+cnn4s1+prefmstu+preeffmstu stackdeg_noechoavg 0.9 stackdeg_noecho2t$s 3; done
+python final_avg.py submissions/cand_final_noecho2t5.csv stackdeg_noecho2t0_C stackdeg_noecho2t1_C stackdeg_noecho2t2_C stackdeg_noecho2t3_C stackdeg_noecho2t4_C  # sub19
+step "done: sub19 cand_final_noecho2t5.csv, sub18 cand_final_noecho2t.csv, sub17 cand_final_noecho.csv, sub16 cand_final_fm2cvt.csv"
