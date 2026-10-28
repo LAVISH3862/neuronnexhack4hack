@@ -74,7 +74,7 @@ if LVL_FIT or LVL_VAL:
 pp = np.load(f'preds/{src}_test.npy'); pl = np.where(pp.max(1) >= thr)[0]; ypl = pp.argmax(1)[pl]
 # PLCV=1: cross-fit the pseudo-labelled test rows, so no test row is predicted by a model trained on its own pseudo-label
 PLCV = os.environ.get('PLCV', '0') == '1'
-tfold = np.random.default_rng(0).integers(0, 5, len(Ft))
+tfold = np.random.default_rng(int(os.environ.get('PLCV_SEED', '0'))).integers(0, 5, len(Ft))
 print(f'pseudo-labels: {len(pl)} at thr {thr}', flush=True)
 
 

@@ -76,4 +76,18 @@ step "11. Same stack with cross-fitted pseudo-labels (no test row predicted by a
 PLCV=1 MODES=C python stack_deg.py cnn+cnnpl+cnn3pl+cnn4s1+pre+preeff+prefmstu stackdeg6_C 0.9 stackdeg_fmcv 3
 python prior_correct.py stackdeg_fmcv submissions/cand_final_cv_prior.csv                                                 # sub13
 python blend.py submissions/cand_final_cv.csv stackdeg_fmcv_C:1                                                           # sub14 (no prior correction)
-step "done: submissions/cand_final_cv.csv (sub14), cand_final_cv_prior.csv (sub13), cand_final_prior.csv (sub12), cand_final_fixmatch.csv (sub11)"
+
+step "12. FixMatch fine-tune of the EfficientNet folds (students saved as preeffmstu)"
+for f in 0 1 2 3 4; do python train_pre.py --fold $f --init 'models/preeff_f{fold}_s0.pt' --arch efficientnet_b0 --fixmatch 1 --fm-tau 0.95 --fm-mu 1 --ema 0.999 \
+  --no-rank --level --noise-lo 0.3 --noise-hi 1.2 --pks-mix 0.5 --lr 1.5e-4 --epochs 3 --bs 16 --seed 31 --tag preeffm; done
+ALL=cnn+cnnpl+cnn3pl+cnn4s1+pre+preeff+prefmstu+preeffmstu
+
+step "13. Cross-fitted stack with all model families, averaged over 3 test splits -> sub15"
+for s in 0 1 2; do PLCV=1 PLCV_SEED=$s MODES=C python stack_deg.py $ALL stackdeg6_C 0.9 stackdeg_fm2cv$s 3; done
+python blend.py submissions/cand_final_fm2cv.csv stackdeg_fm2cv0_C:1 stackdeg_fm2cv1_C:1 stackdeg_fm2cv2_C:1              # sub15
+
+step "14. Same, with pseudo-labels from the sub15 stack instead of the sub6-era one -> sub16"
+python -c "import numpy as np; P = np.exp(np.mean([np.log(np.clip(np.load(f'preds/stackdeg_fm2cv{s}_C_test.npy'), 1e-6, 1)) for s in range(3)], 0)); np.save('preds/stackdeg_fm2cvavg_test.npy', P / P.sum(1, keepdims=True))"
+for s in 0 1 2; do PLCV=1 PLCV_SEED=$s MODES=C python stack_deg.py $ALL stackdeg_fm2cvavg 0.9 stackdeg_fm2cvt$s 3; done
+python blend.py submissions/cand_final_fm2cvt.csv stackdeg_fm2cvt0_C:1 stackdeg_fm2cvt1_C:1 stackdeg_fm2cvt2_C:1           # sub16
+step "done: sub16 cand_final_fm2cvt.csv, sub15 cand_final_fm2cv.csv, sub14 cand_final_cv.csv, sub11 cand_final_fixmatch.csv"

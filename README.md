@@ -5,9 +5,10 @@ satellite pass, radar chirp, intermittent and persistent RFI, noise). Training d
 the test data from PKS, so most of the work goes into surviving that telescope shift.
 
 **Final uploads:** `sub11` (public macro-F1 0.9048), `sub12` (sub11 with a class-prior correction, 0.9040), `sub13`
-(sub12 with cross-fitted pseudo-labels in the stacker) and `sub14` (sub11 with cross-fitted pseudo-labels), reproduced by
-`reproduce.sh` as `submissions/cand_final_fixmatch.csv`, `cand_final_prior.csv`, `cand_final_cv_prior.csv` and
-`cand_final_cv.csv`.
+(sub12 with cross-fitted pseudo-labels in the stacker), `sub14` (sub11 with cross-fitted pseudo-labels, 0.9085), `sub15`
+(cross-fitted stack with all model families, averaged over 3 test splits) and `sub16` (sub15 re-run with pseudo-labels from
+sub15), reproduced by `reproduce.sh` as `submissions/cand_final_fixmatch.csv`, `cand_final_prior.csv`,
+`cand_final_cv_prior.csv`, `cand_final_cv.csv`, `cand_final_fm2cv.csv` and `cand_final_fm2cvt.csv`.
 
 ## Approach
 
