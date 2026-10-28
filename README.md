@@ -72,5 +72,3 @@ intermediate predictions are available on request.
 | Physics features | `features.py`, `features_extra.py`, `features_level.py`, `features_fft.py`, `features_deg.py` |
 | Models | `train_gbm.py`, `train_cnn.py`, `train_cnn2.py`, `train_cnn3.py`, `train_pre.py` |
 | Stacking and finals | `stack.py`, `stack_pl.py`, `stack_deg.py`, `predict_deg.py`, `eval_final.py`, `blend.py`, `prior_correct.py` |
-| Analysis tools used during the round | `adversarial.py`, `check_norm.py`, `explore_labels.py`, `eval_blend.py`, `proxy_pks.py`, `pick.py`, `estimate_csv.py`, `adabn_*.py`, `bench_cnn.py` |
-| Experiments not in the final model | `train_cnn4.py`, `train_panel.py`, `make_heavy.py`, `features_scint.py` |
